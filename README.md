@@ -108,8 +108,6 @@ npm run preview
 
 ## 📷 Screenshots
 
-> Substitua pelas imagens reais do projeto.
-
 ![Tela de Login](./public/screenshots/login.png)
 ![Dashboard de Reservas](./public/screenshots/reservas.png)
 ![Nova Reserva](./public/screenshots/nova-reserva.png)
@@ -120,7 +118,7 @@ npm run preview
 ## ✅ Deploy
 
 Vercel (exemplo):  
-🔗 https://seu-projeto.vercel.app
+🔗 https://react-ts-reservation-architecture.vercel.app/
 
 ---
 
