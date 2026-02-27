@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   Chip,
   Paper,
@@ -33,7 +34,7 @@ const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success
   CANCELED: 'error',
 }
 
-export function ReservationsTable({
+function ReservationsTableComponent({
   reservations,
   onEdit,
   onConfirm,
@@ -102,3 +103,5 @@ export function ReservationsTable({
     </TableContainer>
   )
 }
+
+export const ReservationsTable = memo(ReservationsTableComponent)

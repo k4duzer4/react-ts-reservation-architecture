@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Chip, Stack, Typography } from '@mui/material'
 import { Button, Card } from '@/components/ui'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
@@ -22,7 +23,7 @@ const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success
   CANCELED: 'error',
 }
 
-export function ReservationCard({ reservation, onEdit, onConfirm, onCancel }: ReservationCardProps) {
+function ReservationCardComponent({ reservation, onEdit, onConfirm, onCancel }: ReservationCardProps) {
   return (
     <Card
       title={reservation.title}
@@ -68,3 +69,5 @@ export function ReservationCard({ reservation, onEdit, onConfirm, onCancel }: Re
     </Card>
   )
 }
+
+export const ReservationCard = memo(ReservationCardComponent)

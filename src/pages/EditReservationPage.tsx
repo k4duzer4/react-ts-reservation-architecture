@@ -1,11 +1,17 @@
-import { Alert, Stack, Typography } from '@mui/material'
+import { Stack, Typography, type AlertColor } from '@mui/material'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ReservationForm } from '@/components/reservations'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
+import { Toast } from '@/components/ui'
 import { useReservations } from '@/hooks/useReservations'
 import type { Reservation } from '@/models/reservation'
 import { reservationService } from '@/services/reservationService'
+
+type ToastState = {
+  message: string
+  severity: AlertColor
+}
 
 export function EditReservationPage() {
   const { id } = useParams<{ id: string }>()
@@ -13,7 +19,7 @@ export function EditReservationPage() {
   const [reservation, setReservation] = useState<Reservation | null>(null)
   const [loadingReservation, setLoadingReservation] = useState(true)
   const [loadingError, setLoadingError] = useState<string | null>(null)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [toast, setToast] = useState<ToastState | null>(null)
 
   const { updateReservation, reservations } = useReservations()
 
@@ -46,15 +52,26 @@ export function EditReservationPage() {
       return
     }
 
-    setSubmitError(null)
+    setToast(null)
 
     try {
       await updateReservation(id, values)
-      navigate('/reservas')
+      navigate('/reservas', {
+        state: {
+          toast: {
+            message: 'Reserva atualizada com sucesso.',
+            severity: 'success',
+          },
+        },
+      })
     } catch {
-      setSubmitError('Não foi possível atualizar a reserva. Tente novamente.')
+      setToast({ message: 'Não foi possível atualizar a reserva. Tente novamente.', severity: 'error' })
     }
   }
+
+  const closeToast = useCallback(() => {
+    setToast(null)
+  }, [])
 
   if (!id) {
     return <ErrorState title="Reserva inválida" message="ID da reserva não informado." />
@@ -90,8 +107,6 @@ export function EditReservationPage() {
       <Typography variant="h4">Editar Reserva</Typography>
       <Typography color="text.secondary">Atualize os dados da reserva selecionada.</Typography>
 
-      {submitError ? <Alert severity="error">{submitError}</Alert> : null}
-
       <ReservationForm
         submitLabel="Salvar alterações"
         initialValues={reservation}
@@ -99,6 +114,13 @@ export function EditReservationPage() {
         currentReservationId={reservation.id}
         onSubmit={handleUpdateReservation}
         onCancel={() => navigate('/reservas')}
+      />
+
+      <Toast
+        open={Boolean(toast)}
+        message={toast?.message ?? ''}
+        severity={toast?.severity ?? 'success'}
+        onClose={closeToast}
       />
     </Stack>
   )
