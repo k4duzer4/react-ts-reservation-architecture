@@ -2,7 +2,8 @@ import type { ReservationStatus } from '@/models/reservation'
 
 const transitionMap: Record<ReservationStatus, ReservationStatus[]> = {
   PENDING: ['CONFIRMED', 'CANCELED'],
-  CONFIRMED: ['CANCELED'],
+  CONFIRMED: ['COMPLETED', 'CANCELED'],
+  COMPLETED: [],
   CANCELED: [],
 }
 

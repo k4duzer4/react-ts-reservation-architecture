@@ -34,6 +34,7 @@ const STATUS_OPTIONS: { label: string; value: StatusFilterValue }[] = [
   { label: 'Todos', value: 'ALL' },
   { label: 'Pendente', value: 'PENDING' },
   { label: 'Confirmada', value: 'CONFIRMED' },
+  { label: 'Concluída', value: 'COMPLETED' },
   { label: 'Cancelada', value: 'CANCELED' },
 ]
 
@@ -53,7 +54,8 @@ type ToastState = {
 
 type PendingTransitionState = {
   id: string
-  nextStatus: ReservationStatus
+  action: 'status' | 'delete'
+  nextStatus?: ReservationStatus
 }
 
 type LocationState = {
@@ -63,7 +65,7 @@ type LocationState = {
 export function ReservationsPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { reservations, loading, error, reload, updateReservation } = useReservations()
+  const { reservations, loading, error, reload, updateReservation, deleteReservation } = useReservations()
 
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL')
   const [dateFilter, setDateFilter] = useState('')
@@ -172,7 +174,21 @@ export function ReservationsPage() {
         return
       }
 
-      setPendingTransition({ id, nextStatus })
+      setPendingTransition({ id, action: 'status', nextStatus })
+    },
+    [reservations],
+  )
+
+  const requestDeleteReservation = useCallback(
+    (id: string) => {
+      const reservation = reservations.find((item) => item.id === id)
+
+      if (!reservation) {
+        setToast({ message: 'Reserva não encontrada.', severity: 'error' })
+        return
+      }
+
+      setPendingTransition({ id, action: 'delete' })
     },
     [reservations],
   )
@@ -182,11 +198,11 @@ export function ReservationsPage() {
       return
     }
 
-    const { id, nextStatus } = pendingTransition
+    const { id } = pendingTransition
     const reservation = reservations.find((item) => item.id === id)
 
-    if (!reservation || !canTransition(reservation.status, nextStatus)) {
-      setToast({ message: 'Transição de status inválida.', severity: 'error' })
+    if (!reservation) {
+      setToast({ message: 'Reserva não encontrada.', severity: 'error' })
       setPendingTransition(null)
       return
     }
@@ -194,18 +210,39 @@ export function ReservationsPage() {
     setPendingTransition(null)
 
     try {
+      if (pendingTransition.action === 'delete') {
+        await deleteReservation(id)
+        setToast({ message: 'Reserva excluída com sucesso.', severity: 'success' })
+        return
+      }
+
+      const nextStatus = pendingTransition.nextStatus
+
+      if (!nextStatus || !canTransition(reservation.status, nextStatus)) {
+        setToast({ message: 'Transição de status inválida.', severity: 'error' })
+        return
+      }
+
       await updateReservation(id, { status: nextStatus })
       setToast({
         message:
           nextStatus === 'CONFIRMED'
             ? 'Reserva confirmada com sucesso.'
-            : 'Reserva cancelada com sucesso.',
+            : nextStatus === 'COMPLETED'
+              ? 'Reserva concluída com sucesso.'
+              : 'Reserva cancelada com sucesso.',
         severity: 'success',
       })
     } catch {
-      setToast({ message: 'Não foi possível atualizar o status da reserva.', severity: 'error' })
+      setToast({
+        message:
+          pendingTransition.action === 'delete'
+            ? 'Não foi possível excluir a reserva.'
+            : 'Não foi possível atualizar o status da reserva.',
+        severity: 'error',
+      })
     }
-  }, [pendingTransition, reservations, updateReservation])
+  }, [deleteReservation, pendingTransition, reservations, updateReservation])
 
   const cancelStatusTransition = useCallback(() => {
     setPendingTransition(null)
@@ -377,8 +414,14 @@ export function ReservationsPage() {
             onConfirm={(id) => {
               requestStatusTransition(id, 'CONFIRMED')
             }}
+            onComplete={(id) => {
+              requestStatusTransition(id, 'COMPLETED')
+            }}
             onCancel={(id) => {
               requestStatusTransition(id, 'CANCELED')
+            }}
+            onDelete={(id) => {
+              requestDeleteReservation(id)
             }}
           />
 
@@ -430,9 +473,13 @@ export function ReservationsPage() {
             </Stack>
           }
         >
-          {pendingTransition?.nextStatus === 'CONFIRMED'
-            ? 'Deseja confirmar esta reserva?'
-            : 'Deseja cancelar esta reserva?'}
+          {pendingTransition?.action === 'delete'
+            ? 'Deseja excluir esta reserva?'
+            : pendingTransition?.nextStatus === 'CONFIRMED'
+              ? 'Deseja confirmar esta reserva?'
+              : pendingTransition?.nextStatus === 'COMPLETED'
+                ? 'Deseja marcar esta reserva como concluída?'
+                : 'Deseja cancelar esta reserva?'}
         </Alert>
       </Snackbar>
     </Stack>

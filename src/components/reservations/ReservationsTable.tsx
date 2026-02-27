@@ -12,6 +12,8 @@ import {
   Typography,
 } from '@mui/material'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
+import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
@@ -21,19 +23,23 @@ type ReservationsTableProps = {
   reservations: Reservation[]
   onEdit?: (id: string) => void
   onConfirm?: (id: string) => void
+  onComplete?: (id: string) => void
   onCancel?: (id: string) => void
+  onDelete?: (id: string) => void
   emptyMessage?: string
 }
 
 const statusLabelMap: Record<ReservationStatus, string> = {
   PENDING: 'Pendente',
   CONFIRMED: 'Confirmada',
+  COMPLETED: 'Concluída',
   CANCELED: 'Cancelada',
 }
 
-const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success' | 'error'> = {
+const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success' | 'error' | 'info'> = {
   PENDING: 'warning',
   CONFIRMED: 'success',
+  COMPLETED: 'info',
   CANCELED: 'error',
 }
 
@@ -41,7 +47,9 @@ function ReservationsTableComponent({
   reservations,
   onEdit,
   onConfirm,
+  onComplete,
   onCancel,
+  onDelete,
   emptyMessage = 'Nenhuma reserva encontrada.',
 }: ReservationsTableProps) {
   if (reservations.length === 0) {
@@ -162,6 +170,41 @@ function ReservationsTableComponent({
                       }}
                     >
                       <CloseRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Concluir">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => onComplete?.(reservation.id)}
+                      disabled={!canTransition(reservation.status, 'COMPLETED')}
+                      sx={{
+                        ml: 0.5,
+                        mr: 0.5,
+                        border: 1,
+                        borderColor: 'divider',
+                        color: 'info.main',
+                      }}
+                    >
+                      <DoneAllRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Excluir">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => onDelete?.(reservation.id)}
+                      sx={{
+                        border: 1,
+                        borderColor: 'divider',
+                        color: 'text.secondary',
+                      }}
+                    >
+                      <DeleteOutlineRoundedIcon fontSize="small" />
                     </IconButton>
                   </span>
                 </Tooltip>

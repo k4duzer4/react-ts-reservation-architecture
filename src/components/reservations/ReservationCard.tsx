@@ -8,22 +8,26 @@ type ReservationCardProps = {
   reservation: Reservation
   onEdit?: (id: string) => void
   onConfirm?: (id: string) => void
+  onComplete?: (id: string) => void
   onCancel?: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
 const statusLabelMap: Record<ReservationStatus, string> = {
   PENDING: 'Pendente',
   CONFIRMED: 'Confirmada',
+  COMPLETED: 'Concluída',
   CANCELED: 'Cancelada',
 }
 
-const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success' | 'error'> = {
+const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success' | 'error' | 'info'> = {
   PENDING: 'warning',
   CONFIRMED: 'success',
+  COMPLETED: 'info',
   CANCELED: 'error',
 }
 
-function ReservationCardComponent({ reservation, onEdit, onConfirm, onCancel }: ReservationCardProps) {
+function ReservationCardComponent({ reservation, onEdit, onConfirm, onComplete, onCancel, onDelete }: ReservationCardProps) {
   return (
     <Card
       title={reservation.title}
@@ -48,6 +52,17 @@ function ReservationCardComponent({ reservation, onEdit, onConfirm, onCancel }: 
             disabled={!canTransition(reservation.status, 'CANCELED')}
           >
             Cancelar
+          </Button>
+          <Button
+            size="small"
+            color="info"
+            onClick={() => onComplete?.(reservation.id)}
+            disabled={!canTransition(reservation.status, 'COMPLETED')}
+          >
+            Concluir
+          </Button>
+          <Button size="small" color="inherit" onClick={() => onDelete?.(reservation.id)}>
+            Excluir
           </Button>
         </Stack>
       }

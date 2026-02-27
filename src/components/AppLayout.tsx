@@ -40,13 +40,6 @@ export function AppLayout() {
 
   const isDark = mode === 'dark'
 
-  const shellBackground = isDark ? '#020617' : '#f3f4f6'
-  const appBarBackground = isDark ? '#0b1220' : '#ffffff'
-  const appBarText = isDark ? '#e2e8f0' : '#0f172a'
-  const drawerBackground = isDark ? '#0b1220' : '#ffffff'
-  const drawerText = isDark ? '#d1d5db' : '#1f2937'
-  const drawerSelectedBackground = isDark ? '#1e293b' : '#e2e8f0'
-
   const handleLogout = () => {
     logout()
     navigate('/login', { replace: true })
@@ -68,8 +61,8 @@ export function AppLayout() {
     <Box
       sx={{
         height: '100%',
-        backgroundColor: drawerBackground,
-        color: drawerText,
+        backgroundColor: 'background.paper',
+        color: 'text.primary',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -88,7 +81,7 @@ export function AppLayout() {
             variant="h6"
             sx={{
               fontWeight: 700,
-              color: isDark ? '#f8fafc' : '#0f172a',
+              color: 'text.primary',
               opacity: collapsed ? 0 : 1,
               transition: theme.transitions.create('opacity', {
                 duration: theme.transitions.duration.shorter,
@@ -107,7 +100,7 @@ export function AppLayout() {
               width: 36,
               height: 36,
               border: 1,
-              borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'divider',
+              borderColor: 'divider',
             }}
           >
             <MenuRoundedIcon fontSize="small" />
@@ -115,7 +108,7 @@ export function AppLayout() {
         </Tooltip>
       </Box>
 
-      <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'divider' }} />
+      <Divider sx={{ borderColor: 'divider' }} />
 
       <List sx={{ px: collapsed ? 0.75 : 1 }}>
         <ListItemButton
@@ -130,11 +123,11 @@ export function AppLayout() {
             px: collapsed ? 1 : 1.25,
             justifyContent: collapsed ? 'center' : 'flex-start',
             '&.Mui-selected': {
-              backgroundColor: drawerSelectedBackground,
-              color: isDark ? '#ffffff' : '#0f172a',
+              backgroundColor: 'action.selected',
+              color: 'text.primary',
             },
             '&.Mui-selected:hover': {
-              backgroundColor: drawerSelectedBackground,
+              backgroundColor: 'action.selected',
             },
           }}
         >
@@ -171,11 +164,11 @@ export function AppLayout() {
             px: collapsed ? 1 : 1.25,
             justifyContent: collapsed ? 'center' : 'flex-start',
             '&.Mui-selected': {
-              backgroundColor: drawerSelectedBackground,
-              color: isDark ? '#ffffff' : '#0f172a',
+              backgroundColor: 'action.selected',
+              color: 'text.primary',
             },
             '&.Mui-selected:hover': {
-              backgroundColor: drawerSelectedBackground,
+              backgroundColor: 'action.selected',
             },
           }}
         >
@@ -203,7 +196,7 @@ export function AppLayout() {
       </List>
 
       <Box sx={{ mt: 'auto', p: 1.5 }}>
-        <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'divider', mb: 1.5 }} />
+        <Divider sx={{ borderColor: 'divider', mb: 1.5 }} />
         {collapsed ? (
           <Tooltip title="Sair" placement="right">
             <IconButton
@@ -213,7 +206,7 @@ export function AppLayout() {
                 width: '100%',
                 minHeight: 44,
                 border: 1,
-                borderColor: isDark ? 'rgba(255,255,255,0.24)' : 'divider',
+                borderColor: 'divider',
                 borderRadius: 2,
               }}
             >
@@ -227,7 +220,7 @@ export function AppLayout() {
             variant="outlined"
             color="inherit"
             onClick={handleLogout}
-            sx={{ borderColor: isDark ? 'rgba(255,255,255,0.24)' : 'divider' }}
+            sx={{ borderColor: 'divider' }}
           >
             Sair
           </Button>
@@ -237,7 +230,7 @@ export function AppLayout() {
   )
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: shellBackground }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Box
         component="nav"
         sx={{
@@ -290,10 +283,11 @@ export function AppLayout() {
         <AppBar
           position="sticky"
           sx={{
-            backgroundColor: appBarBackground,
-            borderBottom: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(15,23,42,0.08)',
+            backgroundColor: 'background.paper',
+            borderBottom: 1,
+            borderColor: 'divider',
             boxShadow: 'none',
-            color: appBarText,
+            color: 'text.primary',
           }}
         >
           <Toolbar sx={{ minHeight: 64, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
@@ -314,12 +308,12 @@ export function AppLayout() {
                 onClick={toggleMode}
                 sx={{
                   border: 1,
-                  borderColor: isDark ? 'rgba(255,255,255,0.24)' : 'rgba(15,23,42,0.2)',
+                  borderColor: 'divider',
                 }}
               >
                 {isDark ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
               </IconButton>
-              <Typography variant="body2" sx={{ color: isDark ? '#cbd5e1' : '#334155' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 {user?.name}
               </Typography>
             </Stack>

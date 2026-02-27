@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Box, Stack, Typography, useTheme } from '@mui/material'
+import { Alert, Box, Stack, Typography } from '@mui/material'
 import { useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -14,7 +14,7 @@ const reservationSchema = z
     date: z.string().trim().min(1, 'Data é obrigatória.'),
     startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inicial inválido.'),
     endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário final inválido.'),
-    status: z.enum(['PENDING', 'CONFIRMED', 'CANCELED']),
+    status: z.enum(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELED']),
   })
   .superRefine((values, context) => {
     const startMinutes = timeToMinutes(values.startTime)
@@ -34,6 +34,7 @@ type ReservationFormValues = z.infer<typeof reservationSchema>
 const STATUS_OPTIONS: { label: string; value: ReservationStatus }[] = [
   { label: 'Pendente', value: 'PENDING' },
   { label: 'Confirmada', value: 'CONFIRMED' },
+  { label: 'Concluída', value: 'COMPLETED' },
   { label: 'Cancelada', value: 'CANCELED' },
 ]
 
@@ -69,7 +70,7 @@ function hasTimeConflict(
       return false
     }
 
-    if (reservation.status === 'CANCELED') {
+    if (reservation.status === 'CANCELED' || reservation.status === 'COMPLETED') {
       return false
     }
 
@@ -104,12 +105,9 @@ export function ReservationForm({
   onCancel,
   cancelLabel = 'Cancelar',
 }: ReservationFormProps) {
-  const theme = useTheme()
-  const isDark = theme.palette.mode === 'dark'
-
   const allowedTransitions = useMemo(() => {
     if (!initialValues?.status) {
-      return ['PENDING', 'CONFIRMED', 'CANCELED'] as ReservationStatus[]
+      return ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELED'] as ReservationStatus[]
     }
 
     return getAllowedTransitions(initialValues.status)
@@ -155,24 +153,24 @@ export function ReservationForm({
 
   const fieldSx = {
     '& .MuiInputLabel-root': {
-      color: isDark ? '#93a4bf' : undefined,
+      color: 'text.secondary',
       fontWeight: 500,
     },
     '& .MuiOutlinedInput-root': {
       borderRadius: 2,
-      backgroundColor: isDark ? 'rgba(15,23,42,0.45)' : theme.palette.background.paper,
+      backgroundColor: 'background.paper',
       '& fieldset': {
-          borderColor: isDark ? 'rgba(148, 163, 184, 0.2)' : undefined,
+        borderColor: 'divider',
       },
       '&:hover fieldset': {
-          borderColor: isDark ? 'rgba(148, 163, 184, 0.34)' : undefined,
+        borderColor: 'divider',
       },
       '&.Mui-focused fieldset': {
-        borderColor: isDark ? '#60a5fa' : undefined,
+        borderColor: 'primary.main',
       },
     },
     '& .MuiInputBase-input': {
-      color: isDark ? '#e2e8f0' : undefined,
+      color: 'text.primary',
     },
     '& .MuiFormHelperText-root': {
       marginLeft: 0,
@@ -181,24 +179,24 @@ export function ReservationForm({
 
   const selectWrapperSx = {
     '& .MuiFormLabel-root': {
-      color: isDark ? '#93a4bf' : undefined,
+      color: 'text.secondary',
       fontWeight: 500,
     },
     '& .MuiOutlinedInput-root': {
       borderRadius: 2,
-      backgroundColor: isDark ? 'rgba(15,23,42,0.45)' : theme.palette.background.paper,
+      backgroundColor: 'background.paper',
       '& fieldset': {
-        borderColor: isDark ? 'rgba(148, 163, 184, 0.2)' : undefined,
+        borderColor: 'divider',
       },
       '&:hover fieldset': {
-        borderColor: isDark ? 'rgba(148, 163, 184, 0.34)' : undefined,
+        borderColor: 'divider',
       },
       '&.Mui-focused fieldset': {
-        borderColor: isDark ? '#60a5fa' : undefined,
+        borderColor: 'primary.main',
       },
     },
     '& .MuiSelect-select': {
-      color: isDark ? '#e2e8f0' : undefined,
+      color: 'text.primary',
     },
   }
 
@@ -213,7 +211,7 @@ export function ReservationForm({
         backgroundColor: 'transparent',
       }}
     >
-      <Typography variant="h6" sx={{ color: isDark ? '#f8fafc' : 'text.primary', fontWeight: 700 }}>
+      <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 700 }}>
         Dados da reserva
       </Typography>
 
