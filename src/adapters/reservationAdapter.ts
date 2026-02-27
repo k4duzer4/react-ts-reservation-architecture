@@ -1,6 +1,12 @@
 import type { Reservation } from '@/models/reservation'
 import type { CreateReservationDTO, ReservationDTO, UpdateReservationDTO } from '@/models/reservationDTO'
 
+function removeUndefinedFields<T extends object>(payload: T) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined),
+  ) as Partial<T>
+}
+
 export function fromDTO(dto: ReservationDTO): Reservation {
   return {
     id: dto.id,
@@ -37,12 +43,12 @@ export function toCreateDTO(reservation: Omit<Reservation, 'id'>): CreateReserva
 }
 
 export function toUpdateDTO(reservation: Partial<Omit<Reservation, 'id'>>): UpdateReservationDTO {
-  return {
+  return removeUndefinedFields({
     title: reservation.title,
     user: reservation.user,
     date: reservation.date,
     start_time: reservation.startTime,
     end_time: reservation.endTime,
     status: reservation.status,
-  }
+  }) as UpdateReservationDTO
 }
