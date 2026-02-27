@@ -1,0 +1,31 @@
+{
+  "reservations": [
+    {
+      "id": "1",
+      "title": "Reunião de Planejamento",
+      "user": "Ana",
+      "date": "2026-02-27",
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "2",
+      "title": "Treinamento de Onboarding",
+      "user": "Bruno",
+      "date": "2026-02-28",
+      "startTime": "14:00",
+      "endTime": "15:30",
+      "status": "PENDING"
+    },
+    {
+      "id": "3",
+      "title": "Revisão de Sprint",
+      "user": "Carla",
+      "date": "2026-03-01",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "status": "CANCELED"
+    }
+  ]
+}
