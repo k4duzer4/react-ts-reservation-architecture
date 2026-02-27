@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Alert, Stack } from '@mui/material'
+import { useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button, Input, Select } from '@/components/ui'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
+import { canTransition, getAllowedTransitions } from '@/utils/statusMachine'
 
 const reservationSchema = z
   .object({
@@ -102,6 +104,19 @@ export function ReservationForm({
   onCancel,
   cancelLabel = 'Cancelar',
 }: ReservationFormProps) {
+  const allowedTransitions = useMemo(() => {
+    if (!initialValues?.status) {
+      return ['PENDING', 'CONFIRMED', 'CANCELED'] as ReservationStatus[]
+    }
+
+    return getAllowedTransitions(initialValues.status)
+  }, [initialValues?.status])
+
+  const statusOptions = useMemo(
+    () => STATUS_OPTIONS.filter((option) => allowedTransitions.includes(option.value)),
+    [allowedTransitions],
+  )
+
   const {
     register,
     control,
@@ -115,6 +130,14 @@ export function ReservationForm({
   })
 
   const handleFormSubmit = async (values: ReservationFormValues) => {
+    if (initialValues?.status && !canTransition(initialValues.status, values.status)) {
+      setError('root.transition', {
+        type: 'manual',
+        message: 'Transição de status inválida para esta reserva.',
+      })
+      return
+    }
+
     if (hasTimeConflict(values, existingReservations, currentReservationId)) {
       setError('root.conflict', {
         type: 'manual',
@@ -175,7 +198,7 @@ export function ReservationForm({
         render={({ field }) => (
           <Select
             label="Status"
-            options={STATUS_OPTIONS}
+            options={statusOptions}
             value={field.value}
             onChange={field.onChange}
             error={Boolean(errors.status)}
@@ -185,6 +208,7 @@ export function ReservationForm({
       />
 
       {errors.root?.conflict?.message ? <Alert severity="error">{errors.root.conflict.message}</Alert> : null}
+  {errors.root?.transition?.message ? <Alert severity="error">{errors.root.transition.message}</Alert> : null}
 
       <Stack direction="row" spacing={1}>
         <Button type="submit" variant="contained" disabled={isSubmitting}>

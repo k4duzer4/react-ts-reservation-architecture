@@ -11,10 +11,12 @@ import {
 } from '@mui/material'
 import { Button } from '@/components/ui'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
+import { canTransition } from '@/utils/statusMachine'
 
 type ReservationsTableProps = {
   reservations: Reservation[]
   onEdit?: (id: string) => void
+  onConfirm?: (id: string) => void
   onCancel?: (id: string) => void
   emptyMessage?: string
 }
@@ -34,6 +36,7 @@ const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success
 export function ReservationsTable({
   reservations,
   onEdit,
+  onConfirm,
   onCancel,
   emptyMessage = 'Nenhuma reserva encontrada.',
 }: ReservationsTableProps) {
@@ -75,7 +78,20 @@ export function ReservationsTable({
                 <Button size="small" onClick={() => onEdit?.(reservation.id)}>
                   Editar
                 </Button>
-                <Button size="small" color="error" onClick={() => onCancel?.(reservation.id)}>
+                <Button
+                  size="small"
+                  color="success"
+                  onClick={() => onConfirm?.(reservation.id)}
+                  disabled={!canTransition(reservation.status, 'CONFIRMED')}
+                >
+                  Confirmar
+                </Button>
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={() => onCancel?.(reservation.id)}
+                  disabled={!canTransition(reservation.status, 'CANCELED')}
+                >
                   Cancelar
                 </Button>
               </TableCell>

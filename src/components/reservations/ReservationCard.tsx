@@ -1,10 +1,12 @@
 import { Chip, Stack, Typography } from '@mui/material'
 import { Button, Card } from '@/components/ui'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
+import { canTransition } from '@/utils/statusMachine'
 
 type ReservationCardProps = {
   reservation: Reservation
   onEdit?: (id: string) => void
+  onConfirm?: (id: string) => void
   onCancel?: (id: string) => void
 }
 
@@ -20,7 +22,7 @@ const statusColorMap: Record<ReservationStatus, 'default' | 'warning' | 'success
   CANCELED: 'error',
 }
 
-export function ReservationCard({ reservation, onEdit, onCancel }: ReservationCardProps) {
+export function ReservationCard({ reservation, onEdit, onConfirm, onCancel }: ReservationCardProps) {
   return (
     <Card
       title={reservation.title}
@@ -30,7 +32,20 @@ export function ReservationCard({ reservation, onEdit, onCancel }: ReservationCa
           <Button size="small" onClick={() => onEdit?.(reservation.id)}>
             Editar
           </Button>
-          <Button size="small" color="error" onClick={() => onCancel?.(reservation.id)}>
+          <Button
+            size="small"
+            color="success"
+            onClick={() => onConfirm?.(reservation.id)}
+            disabled={!canTransition(reservation.status, 'CONFIRMED')}
+          >
+            Confirmar
+          </Button>
+          <Button
+            size="small"
+            color="error"
+            onClick={() => onCancel?.(reservation.id)}
+            disabled={!canTransition(reservation.status, 'CANCELED')}
+          >
             Cancelar
           </Button>
         </Stack>

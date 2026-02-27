@@ -5,6 +5,7 @@ import { ReservationsTable } from '@/components/reservations'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
 import { Button, Input, Select } from '@/components/ui'
 import { useDebounce } from '@/hooks/useDebounce'
+import type { ReservationStatus } from '@/models/reservation'
 import { useReservations } from '@/hooks/useReservations'
 import {
   applyFilters,
@@ -13,6 +14,7 @@ import {
   filterByText,
   type StatusFilterValue,
 } from '@/utils/filters'
+import { canTransition } from '@/utils/statusMachine'
 
 const STATUS_OPTIONS = [
   { label: 'Todos', value: 'ALL' },
@@ -23,7 +25,7 @@ const STATUS_OPTIONS = [
 
 export function ReservationsPage() {
   const navigate = useNavigate()
-  const { reservations, loading, error, reload, deleteReservation } = useReservations()
+  const { reservations, loading, error, reload, updateReservation } = useReservations()
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL')
   const [dateFilter, setDateFilter] = useState('')
   const [textFilter, setTextFilter] = useState('')
@@ -42,15 +44,25 @@ export function ReservationsPage() {
     navigate(`/reservas/${id}/editar`)
   }
 
-  const handleCancel = async (id: string) => {
-    const shouldDelete = window.confirm('Deseja cancelar esta reserva?')
+  const handleStatusTransition = async (id: string, nextStatus: ReservationStatus) => {
+    const reservation = reservations.find((item) => item.id === id)
 
-    if (!shouldDelete) {
+    if (!reservation || !canTransition(reservation.status, nextStatus)) {
+      return
+    }
+
+    const shouldContinue = window.confirm(
+      nextStatus === 'CONFIRMED'
+        ? 'Deseja confirmar esta reserva?'
+        : 'Deseja cancelar esta reserva?',
+    )
+
+    if (!shouldContinue) {
       return
     }
 
     try {
-      await deleteReservation(id)
+      await updateReservation(id, { status: nextStatus })
     } catch {
       // erro já controlado no hook
     }
@@ -129,8 +141,11 @@ export function ReservationsPage() {
         <ReservationsTable
           reservations={filteredReservations}
           onEdit={handleEdit}
+          onConfirm={(id) => {
+            void handleStatusTransition(id, 'CONFIRMED')
+          }}
           onCancel={(id) => {
-            void handleCancel(id)
+            void handleStatusTransition(id, 'CANCELED')
           }}
         />
       ) : null}
