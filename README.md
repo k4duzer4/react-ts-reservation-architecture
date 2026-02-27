@@ -120,6 +120,14 @@ npm run preview
 Vercel (exemplo):  
 🔗 https://react-ts-reservation-architecture.vercel.app/
 
+### Variáveis de ambiente no Vercel
+
+Para usar uma API real em produção, configure:
+
+- `VITE_API_URL=https://sua-api.com`
+
+Se a API estiver indisponível, a aplicação usa fallback local (dados seedados de `public/db.json`) para manter a listagem e o CRUD funcionando no front-end.
+
 ---
 
 ## 🏗️ Visão Arquitetural
