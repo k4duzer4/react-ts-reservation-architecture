@@ -1,13 +1,42 @@
+import { useMemo, useState } from 'react'
 import { Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { ReservationsTable } from '@/components/reservations'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
-import { Button } from '@/components/ui'
+import { Button, Input, Select } from '@/components/ui'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useReservations } from '@/hooks/useReservations'
+import {
+  applyFilters,
+  filterByDate,
+  filterByStatus,
+  filterByText,
+  type StatusFilterValue,
+} from '@/utils/filters'
+
+const STATUS_OPTIONS = [
+  { label: 'Todos', value: 'ALL' },
+  { label: 'Pendente', value: 'PENDING' },
+  { label: 'Confirmada', value: 'CONFIRMED' },
+  { label: 'Cancelada', value: 'CANCELED' },
+]
 
 export function ReservationsPage() {
   const navigate = useNavigate()
   const { reservations, loading, error, reload, deleteReservation } = useReservations()
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL')
+  const [dateFilter, setDateFilter] = useState('')
+  const [textFilter, setTextFilter] = useState('')
+
+  const debouncedTextFilter = useDebounce(textFilter, 400)
+
+  const filteredReservations = useMemo(() => {
+    return applyFilters(reservations, [
+      filterByStatus(statusFilter),
+      filterByDate(dateFilter),
+      filterByText(debouncedTextFilter),
+    ])
+  }, [reservations, statusFilter, dateFilter, debouncedTextFilter])
 
   const handleEdit = (id: string) => {
     navigate(`/reservas/${id}/editar`)
@@ -43,6 +72,28 @@ export function ReservationsPage() {
         </Button>
       </Stack>
 
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+        <Select
+          label="Status"
+          options={STATUS_OPTIONS}
+          value={statusFilter}
+          onChange={(value) => setStatusFilter(value as StatusFilterValue)}
+        />
+        <Input
+          label="Data"
+          type="date"
+          value={dateFilter}
+          onChange={(event) => setDateFilter(event.target.value)}
+          InputLabelProps={{ shrink: true }}
+        />
+        <Input
+          label="Buscar"
+          placeholder="Título, usuário ou status"
+          value={textFilter}
+          onChange={(event) => setTextFilter(event.target.value)}
+        />
+      </Stack>
+
       {loading ? <LoadingState message="Carregando reservas..." /> : null}
 
       {!loading && error ? (
@@ -67,9 +118,16 @@ export function ReservationsPage() {
         />
       ) : null}
 
-      {!loading && !error && reservations.length > 0 ? (
+      {!loading && !error && reservations.length > 0 && filteredReservations.length === 0 ? (
+        <EmptyState
+          title="Nenhum resultado para os filtros"
+          description="Ajuste os filtros e tente novamente."
+        />
+      ) : null}
+
+      {!loading && !error && filteredReservations.length > 0 ? (
         <ReservationsTable
-          reservations={reservations}
+          reservations={filteredReservations}
           onEdit={handleEdit}
           onCancel={(id) => {
             void handleCancel(id)
