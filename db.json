@@ -26,6 +26,15 @@
       "start_time": "11:00",
       "end_time": "12:00",
       "status": "CANCELED"
+    },
+    {
+      "id": "8853",
+      "title": "Algum Titulo",
+      "user": "Carlos Eduardo",
+      "date": "2004-03-12",
+      "start_time": "22:30",
+      "end_time": "23:30",
+      "status": "PENDING"
     }
   ]
 }
