@@ -1,9 +1,9 @@
-import { Stack, Typography, type AlertColor } from '@mui/material'
+import { Paper, Stack, Typography, type AlertColor } from '@mui/material'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ReservationForm } from '@/components/reservations'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
-import { Toast } from '@/components/ui'
+import { Button, Toast } from '@/components/ui'
 import { useReservations } from '@/hooks/useReservations'
 import type { Reservation } from '@/models/reservation'
 import { reservationService } from '@/services/reservationService'
@@ -103,25 +103,62 @@ export function EditReservationPage() {
   }
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4">Editar Reserva</Typography>
-      <Typography color="text.secondary">Atualize os dados da reserva selecionada.</Typography>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 1.5, md: 2 },
+        borderRadius: 3,
+        backgroundColor: 'background.paper',
+        borderColor: 'transparent',
+      }}
+    >
+      <Stack spacing={2.25}>
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" gap={1.5}>
+          <Stack spacing={0.25}>
+            <Typography variant="h4" fontWeight={700} color="text.primary">
+              Editar Reserva
+            </Typography>
+            <Typography color="text.secondary">Atualize os dados da reserva selecionada.</Typography>
+          </Stack>
 
-      <ReservationForm
-        submitLabel="Salvar alterações"
-        initialValues={reservation}
-        existingReservations={reservations}
-        currentReservationId={reservation.id}
-        onSubmit={handleUpdateReservation}
-        onCancel={() => navigate('/reservas')}
-      />
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate('/reservas')}
+              sx={{ minHeight: 44, px: 2.5, fontWeight: 600 }}
+            >
+              Voltar
+            </Button>
+          </Stack>
+        </Stack>
 
-      <Toast
-        open={Boolean(toast)}
-        message={toast?.message ?? ''}
-        severity={toast?.severity ?? 'success'}
-        onClose={closeToast}
-      />
-    </Stack>
+        <Paper
+          variant="outlined"
+          sx={{
+            p: { xs: 1.25, md: 1.5 },
+            borderRadius: 2,
+            backgroundColor: 'background.default',
+            borderColor: 'transparent',
+          }}
+        >
+          <ReservationForm
+            submitLabel="Salvar alterações"
+            initialValues={reservation}
+            existingReservations={reservations}
+            currentReservationId={reservation.id}
+            onSubmit={handleUpdateReservation}
+            onCancel={() => navigate('/reservas')}
+          />
+        </Paper>
+
+        <Toast
+          open={Boolean(toast)}
+          message={toast?.message ?? ''}
+          severity={toast?.severity ?? 'success'}
+          onClose={closeToast}
+        />
+      </Stack>
+    </Paper>
   )
 }
