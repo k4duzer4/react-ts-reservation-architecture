@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Paper, Stack, Typography } from '@mui/material'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Button, Input } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 
 type LocationState = {
@@ -47,39 +48,60 @@ export function LoginPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        backgroundColor: 'grey.100',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2,
+        backgroundColor: 'background.default',
       }}
     >
-      <Paper elevation={2} sx={{ p: 4, width: '100%', maxWidth: 420 }}>
-        <Stack component="form" spacing={2} onSubmit={handleSubmit}>
-          <Typography variant="h5">Entrar</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Login fake para acessar as rotas protegidas.
-          </Typography>
+      <Paper
+        variant="outlined"
+        sx={{
+          p: { xs: 1.5, md: 2 },
+          borderRadius: 3,
+          width: '100%',
+          maxWidth: 720,
+          backgroundColor: 'background.paper',
+        }}
+      >
+        <Stack spacing={2.25}>
+          <Stack spacing={0.25}>
+            <Typography variant="h4" fontWeight={700} color="text.primary">
+              Entrar
+            </Typography>
+            <Typography color="text.secondary">
+              Acesse o painel de reservas com seu usuário e senha.
+            </Typography>
+          </Stack>
 
-          {error ? <Alert severity="error">{error}</Alert> : null}
+          <Paper variant="outlined" sx={{ p: { xs: 1.25, md: 1.5 }, borderRadius: 2 }}>
+            <Stack component="form" spacing={2} onSubmit={handleSubmit}>
+              {error ? <Alert severity="error">{error}</Alert> : null}
 
-          <TextField
-            label="Usuário"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            autoComplete="username"
-            fullWidth
-          />
-          <TextField
-            label="Senha"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            fullWidth
-          />
+              <Input
+                label="Usuário"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                autoComplete="username"
+                size="small"
+              />
+              <Input
+                label="Senha"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                size="small"
+              />
 
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
-          </Button>
+              <Stack direction="row" spacing={1}>
+                <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ minHeight: 42, px: 2.25, fontWeight: 600 }}>
+                  {isSubmitting ? 'Entrando...' : 'Entrar'}
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
         </Stack>
       </Paper>
     </Box>
