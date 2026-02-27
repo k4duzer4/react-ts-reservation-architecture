@@ -10,8 +10,16 @@ export type UpdateReservationInput = Partial<Omit<Reservation, 'id'>>
 const RESOURCE = '/reservations'
 const LOCAL_STORAGE_KEY = 'reservations-local-cache-v1'
 
-function isConnectionError(error: unknown) {
-  return axios.isAxiosError(error) && !error.response
+function shouldFallbackToLocal(error: unknown) {
+  if (!axios.isAxiosError(error)) {
+    return false
+  }
+
+  if (!error.response) {
+    return true
+  }
+
+  return [404, 502, 503, 504].includes(error.response.status)
 }
 
 function readLocalReservations(): ReservationDTO[] {
@@ -67,7 +75,7 @@ export const reservationService = {
       writeLocalReservations(data)
       return data.map(fromDTO)
     } catch (error) {
-      if (!isConnectionError(error)) {
+      if (!shouldFallbackToLocal(error)) {
         throw error
       }
 
@@ -81,7 +89,7 @@ export const reservationService = {
       const { data } = await api.get<ReservationDTO>(`${RESOURCE}/${id}`)
       return fromDTO(data)
     } catch (error) {
-      if (!isConnectionError(error)) {
+      if (!shouldFallbackToLocal(error)) {
         throw error
       }
 
@@ -101,7 +109,7 @@ export const reservationService = {
       const { data } = await api.post<ReservationDTO>(RESOURCE, toCreateDTO(payload))
       return fromDTO(data)
     } catch (error) {
-      if (!isConnectionError(error)) {
+      if (!shouldFallbackToLocal(error)) {
         throw error
       }
 
@@ -122,7 +130,7 @@ export const reservationService = {
       const { data } = await api.patch<ReservationDTO>(`${RESOURCE}/${id}`, toUpdateDTO(payload))
       return fromDTO(data)
     } catch (error) {
-      if (!isConnectionError(error)) {
+      if (!shouldFallbackToLocal(error)) {
         throw error
       }
 
@@ -149,7 +157,7 @@ export const reservationService = {
     try {
       await api.delete(`${RESOURCE}/${id}`)
     } catch (error) {
-      if (!isConnectionError(error)) {
+      if (!shouldFallbackToLocal(error)) {
         throw error
       }
 
