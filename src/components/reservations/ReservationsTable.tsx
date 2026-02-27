@@ -1,16 +1,19 @@
 import { memo } from 'react'
 import {
   Chip,
-  Paper,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material'
-import { Button } from '@/components/ui'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import type { Reservation, ReservationStatus } from '@/models/reservation'
 import { canTransition } from '@/utils/statusMachine'
 
@@ -46,25 +49,59 @@ function ReservationsTableComponent({
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table size="small">
+    <TableContainer sx={{ borderRadius: 2.5, overflow: 'hidden' }}>
+      <Table size="medium">
         <TableHead>
           <TableRow>
-            <TableCell>Título</TableCell>
-            <TableCell>Usuário</TableCell>
-            <TableCell>Data</TableCell>
-            <TableCell>Horário</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell align="right">Ações</TableCell>
+            <TableCell sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Título
+            </TableCell>
+            <TableCell sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Usuário
+            </TableCell>
+            <TableCell sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Data
+            </TableCell>
+            <TableCell sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Horário
+            </TableCell>
+            <TableCell sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Status
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 700, py: 1.75, color: 'text.primary', borderColor: 'divider' }}>
+              Ações
+            </TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
           {reservations.map((reservation) => (
-            <TableRow key={reservation.id} hover>
-              <TableCell>{reservation.title}</TableCell>
-              <TableCell>{reservation.user}</TableCell>
-              <TableCell>{reservation.date}</TableCell>
+            <TableRow
+              key={reservation.id}
+              hover
+              sx={{
+                '& td': {
+                  py: 1.4,
+                  borderColor: 'divider',
+                  color: 'text.primary',
+                  backgroundColor: 'transparent',
+                },
+                '&:hover td': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              <TableCell>
+                <Typography variant="body2" fontWeight={600} color="text.primary">
+                  {reservation.title}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">{reservation.user}</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">{reservation.date}</Typography>
+              </TableCell>
               <TableCell>
                 {reservation.startTime} - {reservation.endTime}
               </TableCell>
@@ -73,28 +110,61 @@ function ReservationsTableComponent({
                   label={statusLabelMap[reservation.status]}
                   color={statusColorMap[reservation.status]}
                   size="small"
+                  variant="filled"
                 />
               </TableCell>
               <TableCell align="right">
-                <Button size="small" onClick={() => onEdit?.(reservation.id)}>
-                  Editar
-                </Button>
-                <Button
-                  size="small"
-                  color="success"
-                  onClick={() => onConfirm?.(reservation.id)}
-                  disabled={!canTransition(reservation.status, 'CONFIRMED')}
-                >
-                  Confirmar
-                </Button>
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => onCancel?.(reservation.id)}
-                  disabled={!canTransition(reservation.status, 'CANCELED')}
-                >
-                  Cancelar
-                </Button>
+                <Tooltip title="Editar">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => onEdit?.(reservation.id)}
+                      sx={{
+                        mr: 0.5,
+                        border: 1,
+                        borderColor: 'divider',
+                        color: 'text.primary',
+                      }}
+                    >
+                      <EditRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Confirmar">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => onConfirm?.(reservation.id)}
+                      disabled={!canTransition(reservation.status, 'CONFIRMED')}
+                      sx={{
+                        mr: 0.5,
+                        border: 1,
+                        borderColor: 'divider',
+                        color: 'success.main',
+                      }}
+                    >
+                      <CheckRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title="Cancelar">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => onCancel?.(reservation.id)}
+                      disabled={!canTransition(reservation.status, 'CANCELED')}
+                      sx={{
+                        border: 1,
+                        borderColor: 'divider',
+                        color: 'error.main',
+                      }}
+                    >
+                      <CloseRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

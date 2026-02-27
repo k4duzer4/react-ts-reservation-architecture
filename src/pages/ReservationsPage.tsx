@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react'
-import { Alert, Pagination, Snackbar, Stack, Typography, type AlertColor } from '@mui/material'
+import {
+  Alert,
+  Chip,
+  InputAdornment,
+  Paper,
+  Snackbar,
+  Stack,
+  TablePagination,
+  Typography,
+  type AlertColor,
+} from '@mui/material'
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
+import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import SortRoundedIcon from '@mui/icons-material/SortRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ReservationsTable, ReservationsTableSkeleton } from '@/components/reservations'
 import { EmptyState, ErrorState } from '@/components/states'
@@ -16,7 +30,7 @@ import {
 } from '@/utils/filters'
 import { canTransition } from '@/utils/statusMachine'
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: { label: string; value: StatusFilterValue }[] = [
   { label: 'Todos', value: 'ALL' },
   { label: 'Pendente', value: 'PENDING' },
   { label: 'Confirmada', value: 'CONFIRMED' },
@@ -28,12 +42,6 @@ const SORT_OPTIONS = [
   { label: 'Data (mais antiga)', value: 'DATE_ASC' },
   { label: 'Título (A-Z)', value: 'TITLE_ASC' },
   { label: 'Título (Z-A)', value: 'TITLE_DESC' },
-]
-
-const PAGE_SIZE_OPTIONS = [
-  { label: '5 por página', value: '5' },
-  { label: '10 por página', value: '10' },
-  { label: '20 por página', value: '20' },
 ]
 
 type SortValue = 'DATE_DESC' | 'DATE_ASC' | 'TITLE_ASC' | 'TITLE_DESC'
@@ -56,12 +64,13 @@ export function ReservationsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { reservations, loading, error, reload, updateReservation } = useReservations()
+
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL')
   const [dateFilter, setDateFilter] = useState('')
   const [textFilter, setTextFilter] = useState('')
   const [sortBy, setSortBy] = useState<SortValue>('DATE_DESC')
   const [pageSize, setPageSize] = useState(10)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(0)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [pendingTransition, setPendingTransition] = useState<PendingTransitionState | null>(null)
 
@@ -98,23 +107,23 @@ export function ReservationsPage() {
   }, [filteredReservations, sortBy])
 
   const paginatedReservations = useMemo(() => {
-    const startIndex = (page - 1) * pageSize
+    const startIndex = page * pageSize
     return sortedReservations.slice(startIndex, startIndex + pageSize)
   }, [sortedReservations, page, pageSize])
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(sortedReservations.length / pageSize))
-  }, [sortedReservations.length, pageSize])
+  const totalCount = sortedReservations.length
 
   useEffect(() => {
-    setPage(1)
+    setPage(0)
   }, [statusFilter, dateFilter, debouncedTextFilter, sortBy, pageSize])
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages)
+    const maxPage = Math.max(0, Math.ceil(totalCount / pageSize) - 1)
+
+    if (page > maxPage) {
+      setPage(maxPage)
     }
-  }, [page, totalPages])
+  }, [page, pageSize, totalCount])
 
   useEffect(() => {
     const state = location.state as LocationState | null
@@ -142,13 +151,17 @@ export function ReservationsPage() {
     void reload()
   }, [reload])
 
-  const handleChangePage = useCallback((_event: ChangeEvent<unknown>, nextPage: number) => {
+  const handleChangePage = useCallback((_event: unknown, nextPage: number) => {
     setPage(nextPage)
   }, [])
 
-  const handleChangePageSize = useCallback((value: string) => {
-    setPageSize(Number(value))
-  }, [])
+  const handleChangeRowsPerPage = useCallback(
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setPageSize(parseInt(event.target.value, 10))
+      setPage(0)
+    },
+    [],
+  )
 
   const requestStatusTransition = useCallback(
     (id: string, nextStatus: ReservationStatus) => {
@@ -203,54 +216,129 @@ export function ReservationsPage() {
   }, [])
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4">Reservas</Typography>
-      <Typography color="text.secondary">Tela inicial da listagem de reservas.</Typography>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 1.5, md: 2 },
+        borderRadius: 3,
+        backgroundColor: 'background.paper',
+        borderColor: 'divider',
+      }}
+    >
+      <Stack spacing={2.25}>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" gap={1.5}>
+        <Stack spacing={0.25}>
+          <Typography variant="h4" fontWeight={700} color="text.primary">
+            Reservas
+          </Typography>
+          <Typography color="text.secondary">Gestão e acompanhamento das reservas ativas.</Typography>
+        </Stack>
 
-      <Stack direction="row" spacing={1}>
-        <Button variant="contained" onClick={handleCreate}>
-          Criar nova reserva
-        </Button>
-        <Button variant="outlined" onClick={handleReload}>
-          Recarregar
-        </Button>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={handleReload}
+            sx={{ minHeight: 44, px: 2.5, fontWeight: 600 }}
+          >
+            Recarregar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreate}
+            sx={{ minHeight: 44, px: 2.5, fontWeight: 600 }}
+          >
+            Nova Reserva
+          </Button>
+        </Stack>
       </Stack>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-        <Select
-          label="Status"
-          options={STATUS_OPTIONS}
-          value={statusFilter}
-          onChange={(value) => setStatusFilter(value as StatusFilterValue)}
-        />
-        <Input
-          label="Data"
-          type="date"
-          value={dateFilter}
-          onChange={(event) => setDateFilter(event.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <Input
-          label="Buscar"
-          placeholder="Título, usuário ou status"
-          value={textFilter}
-          onChange={(event) => setTextFilter(event.target.value)}
-        />
-        <Select
-          label="Ordenação"
-          options={SORT_OPTIONS}
-          value={sortBy}
-          onChange={(value) => setSortBy(value as SortValue)}
-        />
-        <Select
-          label="Itens por página"
-          options={PAGE_SIZE_OPTIONS}
-          value={String(pageSize)}
-          onChange={handleChangePageSize}
-        />
-      </Stack>
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 1.5,
+          borderRadius: 2.5,
+          backgroundColor: 'background.paper',
+          borderColor: 'divider',
+        }}
+      >
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+            <Chip
+              icon={<FilterAltRoundedIcon />}
+              label="Filtros"
+              variant="outlined"
+              sx={{ color: 'text.primary', borderColor: 'divider' }}
+            />
+            {STATUS_OPTIONS.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                clickable
+                color={statusFilter === option.value ? 'primary' : 'default'}
+                variant={statusFilter === option.value ? 'filled' : 'outlined'}
+                onClick={() => setStatusFilter(option.value)}
+                sx={
+                  statusFilter === option.value
+                    ? undefined
+                    : { color: 'text.primary', borderColor: 'divider' }
+                }
+              />
+            ))}
+          </Stack>
 
-      {loading ? <ReservationsTableSkeleton /> : null}
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+            <Input
+              label="Buscar"
+              placeholder="Buscar por título, usuário ou status"
+              value={textFilter}
+              onChange={(event) => setTextFilter(event.target.value)}
+              size="small"
+              sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'background.paper' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Input
+              label="Data"
+              type="date"
+              value={dateFilter}
+              onChange={(event) => setDateFilter(event.target.value)}
+              size="small"
+              sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'background.paper' } }}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthRoundedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Select
+              label="Ordenação"
+              options={SORT_OPTIONS}
+              value={sortBy}
+              onChange={(value) => setSortBy(value as SortValue)}
+              size="small"
+              sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'background.paper' } }}
+              startAdornment={
+                <InputAdornment position="start">
+                  <SortRoundedIcon fontSize="small" color="action" />
+                </InputAdornment>
+              }
+            />
+          </Stack>
+        </Stack>
+      </Paper>
+
+      {loading ? <ReservationsTableSkeleton rows={8} /> : null}
 
       {!loading && error ? (
         <ErrorState
@@ -282,7 +370,7 @@ export function ReservationsPage() {
       ) : null}
 
       {!loading && !error && paginatedReservations.length > 0 ? (
-        <Stack spacing={2}>
+        <Paper variant="outlined" sx={{ borderRadius: 3, overflow: 'hidden' }}>
           <ReservationsTable
             reservations={paginatedReservations}
             onEdit={handleEdit}
@@ -294,23 +382,25 @@ export function ReservationsPage() {
             }}
           />
 
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography variant="body2" color="text.secondary">
-              Exibindo {paginatedReservations.length} de {sortedReservations.length} reservas
-            </Typography>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={handleChangePage}
-              color="primary"
-              shape="rounded"
-            />
-          </Stack>
-        </Stack>
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 20]}
+            labelRowsPerPage="Rows per page:"
+            sx={{
+              borderTop: 1,
+              borderColor: 'divider',
+              color: 'text.primary',
+              '& .MuiSelect-select': { color: 'text.primary' },
+              '& .MuiTablePagination-displayedRows': { color: 'text.secondary' },
+              '& .MuiTablePagination-actions button': { color: 'text.primary' },
+            }}
+          />
+        </Paper>
       ) : null}
 
       <Toast
@@ -346,5 +436,6 @@ export function ReservationsPage() {
         </Alert>
       </Snackbar>
     </Stack>
+    </Paper>
   )
 }

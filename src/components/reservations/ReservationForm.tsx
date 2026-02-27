@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Stack } from '@mui/material'
+import { Alert, Box, Stack, Typography, useTheme } from '@mui/material'
 import { useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -104,6 +104,9 @@ export function ReservationForm({
   onCancel,
   cancelLabel = 'Cancelar',
 }: ReservationFormProps) {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
+
   const allowedTransitions = useMemo(() => {
     if (!initialValues?.status) {
       return ['PENDING', 'CONFIRMED', 'CANCELED'] as ReservationStatus[]
@@ -150,72 +153,170 @@ export function ReservationForm({
     reset(getDefaultValues(initialValues))
   }
 
+  const fieldSx = {
+    '& .MuiInputLabel-root': {
+      color: isDark ? '#93a4bf' : undefined,
+      fontWeight: 500,
+    },
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      backgroundColor: isDark ? 'rgba(15,23,42,0.45)' : theme.palette.background.paper,
+      '& fieldset': {
+          borderColor: isDark ? 'rgba(148, 163, 184, 0.2)' : undefined,
+      },
+      '&:hover fieldset': {
+          borderColor: isDark ? 'rgba(148, 163, 184, 0.34)' : undefined,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: isDark ? '#60a5fa' : undefined,
+      },
+    },
+    '& .MuiInputBase-input': {
+      color: isDark ? '#e2e8f0' : undefined,
+    },
+    '& .MuiFormHelperText-root': {
+      marginLeft: 0,
+    },
+  }
+
+  const selectWrapperSx = {
+    '& .MuiFormLabel-root': {
+      color: isDark ? '#93a4bf' : undefined,
+      fontWeight: 500,
+    },
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      backgroundColor: isDark ? 'rgba(15,23,42,0.45)' : theme.palette.background.paper,
+      '& fieldset': {
+        borderColor: isDark ? 'rgba(148, 163, 184, 0.2)' : undefined,
+      },
+      '&:hover fieldset': {
+        borderColor: isDark ? 'rgba(148, 163, 184, 0.34)' : undefined,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: isDark ? '#60a5fa' : undefined,
+      },
+    },
+    '& .MuiSelect-select': {
+      color: isDark ? '#e2e8f0' : undefined,
+    },
+  }
+
   return (
-    <Stack component="form" spacing={2} onSubmit={handleSubmit(handleFormSubmit)}>
-      <Input
-        label="Título"
-        {...register('title')}
-        error={Boolean(errors.title)}
-        helperText={errors.title?.message}
-      />
-      <Input
-        label="Usuário"
-        {...register('user')}
-        error={Boolean(errors.user)}
-        helperText={errors.user?.message}
-      />
-      <Input
-        label="Data"
-        type="date"
-        InputLabelProps={{ shrink: true }}
-        {...register('date')}
-        error={Boolean(errors.date)}
-        helperText={errors.date?.message}
-      />
+    <Stack
+      component="form"
+      spacing={2.25}
+      onSubmit={handleSubmit(handleFormSubmit)}
+      sx={{
+        p: { xs: 1, md: 1.25 },
+        borderRadius: 2,
+        backgroundColor: 'transparent',
+      }}
+    >
+      <Typography variant="h6" sx={{ color: isDark ? '#f8fafc' : 'text.primary', fontWeight: 700 }}>
+        Dados da reserva
+      </Typography>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Input
+          label="Título"
+          size="small"
+          {...register('title')}
+          error={Boolean(errors.title)}
+          helperText={errors.title?.message}
+          sx={fieldSx}
+        />
+        <Input
+          label="Usuário"
+          size="small"
+          {...register('user')}
+          error={Boolean(errors.user)}
+          helperText={errors.user?.message}
+          sx={fieldSx}
+        />
+      </Stack>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Input
+          label="Data"
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          {...register('date')}
+          error={Boolean(errors.date)}
+          helperText={errors.date?.message}
+          sx={fieldSx}
+        />
+
+        <Box sx={{ width: '100%', ...selectWrapperSx }}>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Status"
+                options={statusOptions}
+                value={field.value}
+                onChange={field.onChange}
+                size="small"
+                error={Boolean(errors.status)}
+                helperText={errors.status?.message}
+              />
+            )}
+          />
+        </Box>
+      </Stack>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
         <Input
           label="Início"
           type="time"
+          size="small"
           InputLabelProps={{ shrink: true }}
           {...register('startTime')}
           error={Boolean(errors.startTime)}
           helperText={errors.startTime?.message}
+          sx={fieldSx}
         />
         <Input
           label="Fim"
           type="time"
+          size="small"
           InputLabelProps={{ shrink: true }}
           {...register('endTime')}
           error={Boolean(errors.endTime)}
           helperText={errors.endTime?.message}
+          sx={fieldSx}
         />
       </Stack>
 
-      <Controller
-        name="status"
-        control={control}
-        render={({ field }) => (
-          <Select
-            label="Status"
-            options={statusOptions}
-            value={field.value}
-            onChange={field.onChange}
-            error={Boolean(errors.status)}
-            helperText={errors.status?.message}
-          />
-        )}
-      />
-
-      {errors.root?.conflict?.message ? <Alert severity="error">{errors.root.conflict.message}</Alert> : null}
-  {errors.root?.transition?.message ? <Alert severity="error">{errors.root.transition.message}</Alert> : null}
+      {errors.root?.conflict?.message ? (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {errors.root.conflict.message}
+        </Alert>
+      ) : null}
+      {errors.root?.transition?.message ? (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {errors.root.transition.message}
+        </Alert>
+      ) : null}
 
       <Stack direction="row" spacing={1}>
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isSubmitting}
+          sx={{ minHeight: 42, px: 2.25, fontWeight: 600 }}
+        >
           {isSubmitting ? 'Salvando...' : submitLabel}
         </Button>
         {onCancel ? (
-          <Button type="button" variant="outlined" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={onCancel}
+            sx={{ minHeight: 42, px: 2.25, fontWeight: 600 }}
+          >
             {cancelLabel}
           </Button>
         ) : null}
