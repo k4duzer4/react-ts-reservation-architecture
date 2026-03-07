@@ -1,4 +1,4 @@
-# React TS Reservation Dashboard
+# FlowReserva
 
 Dashboard de gerenciamento de reservas desenvolvido com React e TypeScript, com foco em arquitetura client-side, organização de código e experiência do usuário.  
 O projeto é voltado para estudos, portfólio e demonstração de boas práticas em aplicações front-end modernas.  
